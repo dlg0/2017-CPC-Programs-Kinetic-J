@@ -1,0 +1,482 @@
+%% This template can be used to write a paper for
+%% Computer Physics Communications using LaTeX.
+%% For authors who want to write a computer program description,
+%% an example Program Summary is included that only has to be
+%% completed and which will give the correct layout in the
+%% preprint and the journal.
+%% The `elsarticle' style is used and more information on this style
+%% can be found at 
+%% http://www.elsevier.com/wps/find/authorsview.authors/elsarticle.
+%%
+%%
+%%\documentclass[preprint,12pt]{elsarticle}
+
+%% Use the option review to obtain double line spacing
+%% \documentclass[preprint,review,12pt]{elsarticle}
+
+%% Use the options 1p,twocolumn; 3p; 3p,twocolumn; 5p; or 5p,twocolumn
+%% for a journal layout:
+%% \documentclass[final,1p,times]{elsarticle}
+%% \documentclass[final,1p,times,twocolumn]{elsarticle}
+%% \documentclass[final,3p,times]{elsarticle}
+%% \documentclass[final,3p,times,twocolumn]{elsarticle}
+%% \documentclass[final,5p,times]{elsarticle}
+\documentclass[final,5p,times,twocolumn]{elsarticle}
+
+%% if you use PostScript figures in your article
+%% use the graphics package for simple commands
+%% \usepackage{graphics}
+%% or use the graphicx package for more complicated commands
+\usepackage{graphicx}
+%% or use the epsfig package if you prefer to use the old commands
+%% \usepackage{epsfig}
+
+%% The amssymb package provides various useful mathematical symbols
+\usepackage{amssymb}
+%% The amsthm package provides extended theorem environments
+%% \usepackage{amsthm}
+
+%% The lineno packages adds line numbers. Start line numbering with
+%% \begin{linenumbers}, end it with \end{linenumbers}. Or switch it on
+%% for the whole article with \linenumbers after \end{frontmatter}.
+\usepackage{lineno}
+
+%% natbib.sty is loaded by default. However, natbib options can be
+%% provided with \biboptions{...} command. Following options are
+%% valid:
+
+%%   round  -  round parentheses are used (default)
+%%   square -  square brackets are used   [option]
+%%   curly  -  curly braces are used      {option}
+%%   angle  -  angle brackets are used    <option>
+%%   semicolon  -  multiple citations separated by semi-colon
+%%   colon  - same as semicolon, an earlier confusion
+%%   comma  -  separated by comma
+%%   numbers-  selects numerical citations
+%%   super  -  numerical citations as superscripts
+%%   sort   -  sorts multiple citations according to order in ref. list
+%%   sort&compress   -  like sort, but also compresses numerical citations
+%%   compress - compresses without sorting
+%%
+\biboptions{comma,square}
+
+% \biboptions{}
+
+%% This list environment is used for the references in the
+%% Program Summary
+%%
+\newcounter{bla}
+\newenvironment{refnummer}{%
+\list{[\arabic{bla}]}%
+{\usecounter{bla}%
+ \setlength{\itemindent}{0pt}%
+ \setlength{\topsep}{0pt}%
+ \setlength{\itemsep}{0pt}%
+ \setlength{\labelsep}{2pt}%
+ \setlength{\listparindent}{0pt}%
+ \settowidth{\labelwidth}{[9]}%
+ \setlength{\leftmargin}{\labelwidth}%
+ \addtolength{\leftmargin}{\labelsep}%
+ \setlength{\rightmargin}{0pt}}}
+ {\endlist}
+
+\journal{Computer Physics Communications}
+
+%% Extra stuff by DLG
+
+\usepackage{amsmath,mathtools}
+\usepackage{hyperref}
+\usepackage{xspace}
+\usepackage{dirtree}
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstset{ %
+  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+  basicstyle=\footnotesize,        % the size of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  deletekeywords={...},            % if you want to delete keywords from the given language
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  frame=single,                       % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{blue},       % keyword style
+  language=Octave,                 % the language of the code
+  morekeywords={*,...},           % if you want to add more keywords to the set
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=2,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{mymauve},     % string literal style
+  tabsize=2,                       % sets default tabsize to 2 spaces
+  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+}
+
+\let\oldhat\hat
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\renewcommand{\hat}[1]{\oldhat{\mathbf{#1}}}
+\newcommand{\kpar}{\ensuremath{k_{\parallel}}\xspace}
+\newcommand{\vth}{\ensuremath{v_{\mathrm{th}}}\xspace}
+\newcommand{\kj}{\textsc{Kinetic-j}\xspace}
+\newcommand{\fdfd}{\textsc{fdfd}\xspace}
+\newcommand{\aorsa}{\textsc{aorsa}\xspace}
+\newcommand{\toric}{\textsc{toric}\xspace}
+\newcommand{\jp}{\ensuremath{\vec{j}_{\mathrm{1}}}\xspace}
+\newcommand{\E}{\ensuremath{\vec{E}_{\mathrm{1}}}\xspace}
+\newcommand{\jpc}{\ensuremath{\vec{j}_{\mathrm{1}}^{\mathrm{c}}\left(\vec{r},t\right)}\xspace}
+\begin{document}
+
+\begin{frontmatter}
+
+%% Title, authors and addresses
+
+%% use the tnoteref command within \title for footnotes;
+%% use the tnotetext command for the associated footnote;
+%% use the fnref command within \author or \address for footnotes;
+%% use the fntext command for the associated footnote;
+%% use the corref command within \author for corresponding author footnotes;
+%% use the cortext command for the associated footnote;
+%% use the ead command for the email address,
+%% and the form \ead[url] for the home page:
+%%
+%% \title{Title\tnoteref{label1}}
+%% \tnotetext[label1]{}
+%% \author{Name\corref{cor1}\fnref{label2}}
+%% \ead{email address}
+%% \ead[url]{home page}
+%% \fntext[label2]{}
+%% \cortext[cor1]{}
+%% \address{Address\fnref{label3}}
+%% \fntext[label3]{}
+
+\title{\kj: A computational kernel for calculating the linear, kinetic, configuration space plasma current for time harmonic wave electric fields.}
+
+%% use optional labels to link authors explicitly to addresses:
+%% \author[label1,label2]{<author name>}
+%% \address[label1]{<address>}
+%% \address[label2]{<address>}
+
+\author[a]{David L. Green\corref{author}}
+\author[a,b]{Lee A. Berry}
+\author[b]{Adam B. Simpson}
+\author[b,c]{Tim R. Younkin}
+
+\cortext[author] {Corresponding author.\\\textit{E-mail address:} greendl1@ornl.gov}
+\address[a]{Oak Ridge National Laboratory, 1 Bethel Valley Rd., Oak Ridge, Tennessee 37831, USA}
+\address[b]{XCEL Engineering, 1066 Commerce Park Dr., Oak Ridge, Tennessee 37830, USA}
+\address[c]{Universtity of Tennessee, Knoxville, Tennessee 37996, USA}
+
+\begin{abstract}
+%% Text of abstract
+We present the \kj code, a computational kernel for evaluating the linear kinetic plasma response to an applied time harmonic wave electric field. This code addresses the need for a configuration space evaluation of the the plasma current to enable kinetic full-wave solvers for waves in hot plasmas to move beyond the limitations of the traditional Fourier spectral methods. We benchmark the kernel via comparison with the standard $\vec{k}$-space forms of the hot plasma conductivity tensor. 
+\end{abstract}
+
+\begin{keyword}
+%% keywords here, in the form: keyword \sep keyword
+Plasma; conductivity; linear; kinetic; hot; configuration space.
+
+\end{keyword}
+
+\end{frontmatter}
+
+%%
+%% Start line numbering here if you want
+%%
+\linenumbers
+
+% Computer program descriptions should contain the following
+% PROGRAM SUMMARY.
+
+{\bf PROGRAM SUMMARY}
+  %Delete as appropriate.
+
+\begin{small}
+\noindent
+{\em Program Title:} \kj                           \\
+{\em Licensing provisions: }MIT                             \\
+{\em Programming language: }C++ / IDL / CUDA                 \\
+%{\em Supplementary material:}                                 \\
+  % Fill in if necessary, otherwise leave out.
+%{\em Journal reference of previous version:}                  \\
+  %Only required for a New Version summary, otherwise leave out.
+%{\em Does the new version supersede the previous version?:}   \\
+  %Only required for a New Version summary, otherwise leave out.
+%{\em Reasons for the new version:}\\
+  %Only required for a New Version summary, otherwise leave out.
+%{\em Summary of revisions:}*\\
+  %Only required for a New Version summary, otherwise leave out.
+{\em Nature of problem: }Configuration space evalution of the linear, kinetic plasma current.\\
+  %Describe the nature of the problem here. \\
+{\em Solution method: }Direct numerical evaluation of the linearized solution of the Vlasov equation, i.e., provided a time harmonic wave electric field as input, evalutate the unperturbed Lorentz orbit of each phase-space (position and velocity) point trajectory and integrate over its time history, then take the first velocity moment to calculate current.\\
+  %Describe the method solution here.
+{\em Additional comments:} This initial version is 1x-3v, and accepts input fields in either Cartesian or cylindrical coordinates. The code is hosted at \url{https://github.com/ORNL-Fusion/kineticj}.\\
+  %Provide any additional comments here.
+%   \\ 
+%\begin{thebibliography}{0}
+%\bibitem{1}Reference 1         % This list should only contain those items referenced in the                 
+%\bibitem{2}Reference 2         % Program Summary section.   
+%\bibitem{3}Reference 3         % Type references in text as [1], [2], etc.
+%                               % This list is different from the bibliography at the end of 
+%                               % the Long Write-Up.
+%\end{thebibliography}
+%* Items marked with an asterisk are only required for new versions
+%of programs previously published in the CPC Program Library.\\
+\end{small}
+%
+%% main text
+\section{Introduction}
+\label{section:introduction}
+The application of megawatts of radio frequency (RF) power in the ion-cyclotron, lower-hybrid, and electron-cyclotron range of frequencies is often required for heating and current drive applications in magnetically confined fusion plasmas. The extreme environment, as well as the large range of space and time scales of the relevant physics mean that predicting how a hot (several keV), magnetically confined plasma will respond to applied RF power has relied heavily on high performance computing. Here we present a computational kernel which provides this kinetic response, i.e., the plasma current $\vec{j}$; hence the name \kj.  
+%
+
+The hot nature fusion plasmas means kinetic (non-local / velocity space) effects require a wave vector dependent conductivity tensor $\bar{\sigma}\left(\omega,\vec{k}\right)$ (in addition to the frequency $\omega$ dependence for the cold / local approximation) \cite[cf.,][]{stix,fukuyama1986}. Traditional methods for calculating the linear, kinetic (hot) full wave plasma response (current) rely on a spectral method \cite[e.g.,][]{brambilla1999,jaeger2001,jaeger2002a}, i.e., a spatial Fourier transform of the time harmonic form of Maxwell's equations (Helmholtz wave equation) such that the $\vec{k}$ dependent conductivity fits naturally within the numerical method. Examples of such implementations are the All-ORders Spectral Algorithm (AORSA) \cite{jaeger2003a}, and TORIC \cite{brambilla1999,wright2004}. These methods have seen much success in application to the well confined core plasma of tokamaks in 2 spatial dimensions (in cylindrical coordinates; $r$ (radial) and $z$ (vertical), with $\mathrm{exp}\left(in\phi\right)$ Fourier decomposition in toroidal angle where $n$ is the toroidal mode number and $phi$ is angle), with some limited application in real 3D \cite[c.f. Fig.~8 of][]{jaeger2002a}. 
+
+However, recent efforts \cite[e.g.,][]{bertelli2014,wright2015,jenkins2015} to move toward quantitative prediction of high power RF antenna designs for fusion applications has meant a requirement of resolving the geometric details of the antenna and other plasma facing surfaces. The Fourier spectral method is ill-suited to such problems where there are no periodic coordinates (i.e., field lines intersecting the walls), or surfaces aligned with coordinate directions. The typical approach to this problem of quantitative prediction where both the geometric fidelity of the antenna and surrounds must be resolved, in addition to the hot plasma kinetics, is to couple a spectral solver for the core plasma, and a cold-plasma representation (no $\vec{k}$ dependence in the conductivity, and therefore no advantage for the Fourier spectral method so geometry conforming methods such as the finite element methods may be applied). These approaches have seen some success. However, they are still limited by several fundamental restrictions of the Fourier spectral method. These include the numerical limitations of uniform resolution in any spectral direction, matrices approaching dense (or indeed fully dense for the approach of AORSA), and $N^3$ work scaling to invert such dense matrices, as well as physics limitations including the stationary-phase approximation \cite{stix,brambilla}.  
+
+An alternative approach to coupling core spectral, and boundary finite element full-wave solvers was presented by \cite{green2014} where the computational power of modern computing architectures was leveraged in an operator-split, iterative approach to the inclusion of kinetic effects to existing cold-plasma full-wave solvers. That paper was the proof of principle for parallel kinetic effects. This is similar to, although extended beyond, the work of \cite{meneghini2009,shiraiwa2010a} where the damping term for configuration space finite element method LH full-wave calculations was added iteratively. Here we present the full computational kernel for evaluating both the propagation and damping components of the kinetic plasma current, with verification benchmarks showing the capability for both parallel and perpendicular kinetic effects.
+
+In the remainder of the paper, section~\ref{section:model} describes the model evaluated by the code, section~\ref{section:implementation} describes the numerical implementation, section~\ref{section:program} details running the program, section~\ref{section:verification} presents the benchmark cases for verification, section~\ref{section:performance} covers program performance, and lastly we discuss future work in section~\ref{section:discussion}.
+%
+\section{Model}
+\label{section:model}
+%
+In the operator split, iterative approach of \cite{green2014}, the wave electric field is known from an initial guess at the plasma current, i.e., a cold-plasma full-wave solution. Provided this, or any time harmonic, complex valued wave electric field $\vec{E}_{\mathrm{1}}\left(\vec{r},t\right)=\vec{E}_{\mathrm{1}}\left(\vec{r}\right)\exp{-i\omega t}$, the \kj kernel evaluates the following expressions (the second operator $\mathfrak{L}_{\mathrm{2}}$ in the splitting of \cite{green2014}) to provide the kinetic plasma current \jp for that $\vec{E}_{\mathrm{1}}\left(\vec{r}\right)}$.
+
+\begin{linenomath}
+\begin{equation}
+\jp=\mathfrak{L}_{\mathrm{2}}\vec{E}_{\mathrm{1}}=q\int \vec{v}f_{\mathrm{1}}\left(\vec{r},\vec{v},t\right)d\vec{v}
+\label{eq:j1}
+\end{equation}
+\end{linenomath}
+
+The kinetic constituative relation is determined by solving for the oscillating piece ($f_{\mathrm{1}}$) of the distribution function $f\left(\vec{r},\vec{v},t\right)=f_{\mathrm{0}}\left(\vec{r},\vec{v}\right)+f_{\mathrm{1}}\left(\vec{r},\vec{v},t\right)$ which satisfies the linearized Vlasov equation as 
+%
+%\begin{widetext}
+\begin{linenomath}
+\begin{equation}
+\begin{split}
+\label{eq:lin_vlasov}
+\frac{df_1}{dt}=&\frac{\partial f_1}{\partial t}+\vec{v}\cdot\nabla f_{\mathrm{1}}+\frac{q}{m}\left(\vec{v}\times\vec{B}_{\mathrm{0}}\right)\cdot\nabla_v f_1\\=&-\frac{q}{m}\left(\vec{E}_1+\vec{v}\times\vec{B}_1\right)\cdot\nabla_v f_0
+\end{split}
+\end{equation}
+\end{linenomath}
+%\end{widetext}
+%
+By the method-of-characteristics, and with an initial condition as $f_{\mathrm{1}}\left(t=-\mathrm{\infty}\right)=0$, $f_{\mathrm{1}}$ is 
+%
+%\begin{widetext}
+\begin{linenomath}
+\begin{equation}
+\begin{split}
+\label{eq:f1}
+f_{\mathrm{1}}\left(\vec{r},\vec{v},t\right)=-\frac{q}{m}\int_{-\mathrm{\infty}}^{t}
+\Big(\vec{E}_{\mathrm{1}}\left(\vec{r}',t'\right)+\vec{v}\left(t'\right)\\ \times\vec{B}_1\left(\vec{r}',t'\right) 
+\hspace{0cm}\Big) \cdot\nabla_v f_{\mathrm{0}} \left(\vec{r}',\vec{v}',t'\right)dt'
+\end{split}
+\end{equation}
+\end{linenomath}
+%\end{widetext}
+%
+where the characteristic curves $\left(\vec{r}',\vec{v}',t'\right)$ are given by the unperturbed particle trajectories
+%
+\begin{linenomath}
+\begin{equation}
+\begin{split}
+\label{eq:trajectories}
+\frac{d\vec{r}'}{dt'}&=\vec{v}'\\
+\frac{d\vec{v}'}{dt'}&=\frac{q}{m}\left(\vec{v}'\times\vec{B}_{\mathrm{0}}\left(\vec{r}'\right)\right)
+\end{split}
+\end{equation}
+\end{linenomath}
+
+Evaluating $\jp$ in this way as the integration along unperturbed, configuration-space particle trajectories yields several advantages beyond extending a cold-plasma solver to include kinetics. While the the driving motivation for this work is the need to solve higher fidelity problems (which include kinetic effects only in some part of the domain, but also exhibit variable spatial scales) than is presently possible with present spectral approaches (as represented by the first two of the following items) our approach will also address some other issues present in traditional methods. 
+%
+\begin{itemize}
+\item{Compatible with variable mesh resolution.}
+\item{Improved algorithmic scaling, i.e., access problems with more degrees of freedom such as real-3D.}
+\item{No requirement on field aligned grids.}
+\item{Includes violations of stationary phase approximation (i.e., upshift of the wave-number along particle trajectories \cite[]{berry2016})}
+\item{Produces sparse, banded tri-diagonal matrices via a diagonal dielectric tensor.}
+\end{itemize}
+%
+The last of these items has implications for the scalability of the auxiliary full-wave solver.
+%
+\section{Numerical Implementation}
+\label{section:implementation}
+%
+The \kj code is comprised of three components. The first is evaluation of the unperturbed trajectories of Eq.~\ref{eq:trajectories} via a fixed time step ($\Delta t$) 4th order Runge Kutta scheme from $t=0$ backwards to $t=-\texttt{nRFCycles}\times{2\pi}/\omega$ in steps of $-\Delta t$ where \texttt{nRFCycles} is a config file parameter specifying the number of RF cycle periods. We utilize a fixed time step such that a parallelization over velocity space yields the same amount of work per process, and is therefore more appropriate to the GPU implementation we employ. The background field interpolation is linear. Studies of results versus background field mesh resolution confirm this is sufficient for the cases presented here. However, in future a more accurate interpolation scheme may be required.
+
+The second component is calculation of $f_{\mathrm{1}}$ via evaluation of Eq.~\ref{eq:f1} by completing the time integration along the computed trajectories. The spatial and time coordinate of those trajectories are provided from the previous step allowing the time-harmonic fields to be evaluated, again with linear spatial interpolation, and the known $\exp{-i\omega t'}$ phase. Typically the $\vec{B}_{\mathrm{1}}$ of Eq.~\ref{eq:f1} is ignored due to its small contribution. The velocity space gradient term $\nabla_v f_{\mathrm{0}}$ of Eq.~\ref{eq:f1} is known analytically for the Maxwellian problems presented here. However, numerical evaluation for an arbitrary $f_\mathrm{0}$ would also be straightforward. As discussed previously, the time integration is finite from $t'=-t_{\mathrm{inf}}=\texttt{nRFCycles}\times{2\pi}/\omega$ to $t'=0$ with the additional use of an arbitrary weighting function $\alpha\left(t'\right)$ that smoothly ramps from $\alpha\left(t'=-t_{\mathrm{inf}}\right)=0$ to $\alpha\left(t'\ge-t_{\mathrm{inf}}/2\right)=1$. 
+%
+\begin{linenomath}
+\begin{equation}
+\begin{split}
+\label{eq:f1_2}
+f_{\mathrm{1}}\left(\vec{r},\vec{v},t\right)=-\frac{q}{m}\int_{-t_\mathrm{inf}}^{t=0}
+\alpha\left(t'\right)\vec{E}_{\mathrm{1}}\left(\vec{r}',t'\right) 
+\hspace{0cm} \cdot\nabla_v f_{\mathrm{0}} \left(\vec{r}',\vec{v}',t'\right)dt'
+\end{split}
+\end{equation}
+\end{linenomath}
+%
+This weighting function, here being the rising half of a Hanning function, removes the dependence on the location where the time integral is begin, and is a requirement of an arbitrary (non-periodic) electric field, and finite time integration constraint. The ramping function is not required for single $k$ fields such as those used in the benchmark problems presented here. \texttt{nRFCycles} is chosen large enough such that the value of $f_{\mathrm{1}}$ does not depend on it. The integration scheme is piecewise summation via the trapezoidal rule. 
+
+The third component is evaluating the velocity space integral in Eq.~\ref{eq:j1}. This is also computed via piecewise summation using the Trapezoidal rule. The velocity space grid typically spans $\pm 5v_{\mathrm{th}}$ for the Maxwellian distributions used here.
+%
+\section{Program Description}
+\label{section:program}
+%
+\subsection{Compiling}
+\label{section:running}
+%
+\kj uses Make, with a machine dependent Makefile required. The name of this file must be set to \texttt{machine-makefiles/Makefile.\$(uname -n)}, with templates provided. C pre-processor (CPP) flags are used to control features and debugging output. 
+
+\subsection{Running the Program}
+\label{section:running}
+%
+The \kj run directory structure, as laid out in the benchmark test cases, is as follows
+
+\dirtree{%
+.1 run-directory.
+.2 kj.cfg..
+.2 input/.
+.3 input-data.nc.
+.2 output/.
+.3 jP.nc.
+}
+\subsubsection{Input File}
+\label{section:input_file}
+The \kj input file kj.cfg is a libconfig (\url{http://www.hyperrealm.com/libconfig/}), human readable file. 
+%
+\lstinputlisting[language=C]{kj.cfg.example} 
+%
+The IDL routines also provide read and write capability for the \kj input files allowing scripting such as that used in the benchmarks where scans are made over input file variables.  
+%
+\subsubsection{Required Inputs}
+\label{section:inputs}
+As specified by the \lstinline{eField_fName} entry of the input file, a netcdf file containing the complex valued wave electric is required as input. 
+ 
+%
+\section{Verification and Benchmarks}
+\label{section:verification}
+The following verification examples are run using the \href{https://github.com/ORNL-Fusion/kineticj/blob/master/idl/kj_sigma_benchmarks.pro}{\texttt{idl/kj\_sigma\_benchmarks.pro}} script as documented in each benchmark's \texttt{README.md} file.
+
+\subsection{Verification 1: $\sigma_i\left(T\right), k_{y}=0$}
+\label{section:verification1}
+%
+The first benchmark case is a verification that \kj can reproduce the standard hot plasma conductivity tensor for ions in the ion-cyclotron range of frequencies. This requires setting up a uniform, periodic \kj input file. Here we choose frequency = 13 MHz, deuterium, density = 2e19 $m^{-3}$, $\vec{B}=B_z\hat{\vec{z}}$, $B_z=1.0$ T. To compute the full 3x3 conductivity tensor, we run \kj once for each wave electric field component being non-zero, such that with the components of the \kj returned $\vec{j}$ being 
+%
+\begin{equation} 
+j_x = \sigma_{xx}E_x+\sigma_{xy}E_y+\sigma_{xz}Ez
+\end{equation}
+\begin{equation} 
+j_y = \sigma_{yx}E_x+\sigma_{yy}E_y+\sigma_{yz}Ez
+\end{equation}
+\begin{equation} 
+j_z = \sigma_{zx}E_x+\sigma_{zy}E_y+\sigma_{zz}Ez
+\end{equation}
+%
+with three \kj runs ($E_y=E_z=0$, $E_x=E_z=0$, and $E_x=E_y=0$) we are able to calculate all nine elements of the tensor, e.g., for a $E_x\ne0,E_y=0,E_z=0$ run, $\sigma_{xx}=j_x/E_x$, $\sigma_{yx}=j_y/E_x$, and $\sigma_{zx}=j_z/E_x$. The standard expressions for the hot conductivity in \cite[pg. 255 of ][]{brambilla}, or \cite[pg. 176 of][]{swanson} assume $k_\perp=k_x$ and $k_\parallel=k_z$ with $k_y=0$. We first choose $k_x=10,k_y=0,k_z=100$ $m^{-1}$, as well as $T_\parallel=T_\perp$ and zero drift velocity (the $v_0$ term of \cite{swanson}).
+
+
+
+\begin{figure*}
+\centering
+\includegraphics[]{figures/kj_sigma_vs_t}
+\caption{The nine components of the plasma conductivity for a range of temperatures. Black is real, red is imaginary. Cold-plasma values are shown as dotted lines for reference. The reference curves are calculated separately from both the expressions in \cite{brambilla} and \cite{swanson} to provide an additional verification.}
+\label{fig:sig_vs_t}
+\end{figure*}
+
+\subsection{Verification 2: $\sigma_i\left(T\right), k_{y}\ne 0$}
+\label{section:verification2}
+
+How to run, plus link to the benchmark page on github.
+
+\subsection{Verification 3: $\sigma_i\left(B\right)$}
+\label{section:verification3}
+
+\subsection{Verification 4: $\sigma_e\left(B\right), f=28 GHz$}
+\label{section:verification4}
+
+Electron case, at higher freq.
+
+\subsection{Choice of parameters}
+\label{section:parameters}
+%
+The numerical evaulation of Eqns.\ref{eq:j1} through \ref{eq:trajectories} require several discretization parameters to be chosen. These are 
+%
+\begin{itemize}
+\item{Velocity space (Cartesian) grid resolution and range, via setting the number of velocity space grid points in each direction: nPx, nPy, and nPz in kj.cfg, as well as nThermal which specifies the range (in units of the thermal velocity) in both the positive and negative velocity directions of the velocity space integral in Eq.\ref{eq:j1}.}
+\end{itemize}
+
+\section{Performance}
+\label{section:performance}
+The configuration space evaluation of Eqns.\ref{eq:1}-\ref{eq:2} is extremely expensive when compare to the evaluation of the analytic expressions of \cite{stix}. However, we have to keep in mind that the goal here is improved algorithmic scaling (work required as a function of degrees of freedom) to solve the problem. For the spectral equivalent, i.e., the AORSA code, the work scales as $N^3$, and memory as $N^2$. This means that for problems about about 512 x 512 ($N=...$), the work required exceeds that of modern peta-scale computers, as does the memory. So while the kernel presented here is much slower for smaller problems, at some point in $N$, we expect a crossover point such that the iterative operator-split algorithm will enable solving problems of higher $N$. 
+
+Still, that crossover point is lowered as we speed up \kj.
+
+\section{Discussion and Future Work}
+\label{section:discussion}
+While we have presented \kj in the context of an operator-split iterative approach, it is straighforward to conceive an approach where such a kernel is embedded within the matrix construction step of a finite element or similar method, as was done by \cite{svidzinski2016}. However, such an approach will still produce partially dense matricies, such that when moving to the 3D problems of interest, the block sparsity pattern may result in scaling difficulties such that utilizing the full power of leadership class computing platforms is difficult. 
+
+Future work will focus on the application of the \kj kernel within the mentioned iterative operator-spit approach to verify the complete solution method, and investigate its computational scaling properties with respect to other known methods of similar physics fidelity, i.e., AORSA and TORIC. Additionally we will move to higher spatial dimensionality, and investigate a gyro-averaged evaluation of \ref{eq:1} for faster calcualtion of the electron plasma current at ion-cyclotron time scales; Increase parallelization to multiple GPUs per node, across multiple nodes.
+
+And ...
+
+\section{Acknowledgements}
+\label{section:acknowledgements}
+This research used resources of the Oak Ridge Leadership Computing Facility at the Oak Ridge National Laboratory, which is supported by the Office of Science of the U.S. Department of Energy under Contract No. DE-AC05-00OR22725.
+
+
+%% The Appendices part is started with the command \appendix;
+%% appendix sections are then done as normal sections
+%% \appendix
+
+%% \section{}
+%% \label{}
+
+%% References
+%%
+%% Following citation commands can be used in the body text:
+%% Usage of \cite is as follows:
+%%   \cite{key}         ==>>  [#]
+%%   \cite[chap. 2]{key} ==>> [#, chap. 2]
+%%
+
+%% References with bibTeX database:
+
+\bibliographystyle{elsarticle-num}
+\bibliography{fusion}
+
+%% Authors are advised to submit their bibtex database files. They are
+%% requested to list a bibtex style file in the manuscript if they do
+%% not want to use elsarticle-num.bst.
+
+%% References without bibTeX database:
+
+% \begin{thebibliography}{00}
+
+%% \bibitem must have the following form:
+%%   \bibitem{key}...
+%%
+
+% \bibitem{}
+
+% \end{thebibliography}
+
+
+\end{document}
+
+%%
+%% End of file 
