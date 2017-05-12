@@ -244,14 +244,14 @@ The hot nature fusion plasmas means kinetic (non-local / velocity space) effects
 
 However, recent efforts \cite[e.g.,][]{bertelli2014,wright2015,jenkins2015} to move toward quantitative prediction of high power RF antenna designs for fusion applications has meant a requirement of resolving the geometric details of the antenna and other plasma facing surfaces. The Fourier spectral method is ill-suited to such problems where there are no periodic coordinates (i.e., field lines intersecting the walls), or surfaces aligned with coordinate directions. The typical approach to this problem of quantitative prediction where both the geometric fidelity of the antenna and surrounds must be resolved, in addition to the hot plasma kinetics, is to couple a spectral solver for the core plasma, and a cold-plasma representation (no $\vec{k}$ dependence in the conductivity, and therefore no advantage for the Fourier spectral method so geometry conforming methods such as the finite element methods may be applied). These approaches have seen some success. However, they are still limited by several fundamental restrictions of the Fourier spectral method. These include the numerical limitations of uniform resolution in any spectral direction, matrices approaching dense (or indeed fully dense for the approach of AORSA), and $N^3$ work scaling to invert such dense matrices, as well as physics limitations including the stationary-phase approximation \cite{stix,brambilla}.  
 
-An alternative approach to coupling core spectral, and boundary finite element full-wave solvers was presented by \cite{green2014} where the computational power of modern computing architectures was leveraged in an operator-split, iterative approach to the inclusion of kinetic effects to existing cold-plasma full-wave solvers. That paper was the proof of principle for parallel kinetic effects. This is similar to, although extended beyond, the work of \cite{meneghini2009,shiraiwa2010a} where the damping term for configuration space finite element method LH full-wave calculations was added iteratively. Here we present the full computational kernel for evaluating both the propagation and damping components of the kinetic plasma current, with verification benchmarks showing the capability for both parallel and perpendicular kinetic effects.
+An alternative approach to coupling core spectral, and boundary finite element full-wave solvers was presented by \cite{green2014} where the computational power of modern computing architectures was leveraged in an operator-split, iterative approach to the inclusion of kinetic effects to existing cold-plasma full-wave solvers. That paper was the proof of principle for parallel kinetic effects. This is similar to, although extended beyond, the work of \cite{meneghini2009,shiraiwa2010a} where the damping term for configuration space finite element method LH full-wave calculations was added iteratively. Here we present the full computational kernel for evaluating both the propagation and damping components of the kinetic plasma current, with verification benchmarks showing the capability for both parallel and perpendicular kinetic effects. It is also straight forward to conceive an approach where such a kernel is embedded within the matrix construction step of a finite element or similar method, as was done by \cite{svidzinski2016}. However, such an approach will still produce partially dense matrices, such that when moving to the 3D problems of interest, the block sparsity pattern may result in scaling difficulties which may limit utilizing the full power of leadership class computing platforms. The operator-split approach of \cite{green2014} trades the advantages of a diagonal dielectric tensor for the challenge of convergence on the iteration.    
 
 In the remainder of the paper, section~\ref{section:model} describes the model evaluated by the code, section~\ref{section:implementation} describes the numerical implementation, section~\ref{section:program} details running the program, section~\ref{section:verification} presents the benchmark cases for verification, section~\ref{section:performance} covers program performance, and lastly we discuss future work in section~\ref{section:discussion}.
 %
 \section{Model}
 \label{section:model}
 %
-In the operator split, iterative approach of \cite{green2014}, the wave electric field is known from an initial guess at the plasma current, i.e., a cold-plasma full-wave solution. Provided this, or any time harmonic, complex valued wave electric field $\vec{E}_{\mathrm{1}}\left(\vec{r},t\right)=\vec{E}_{\mathrm{1}}\left(\vec{r}\right)\exp{-i\omega t}$, the \kj kernel evaluates the following expressions (the second operator $\mathfrak{L}_{\mathrm{2}}$ in the splitting of \cite{green2014}) to provide the kinetic plasma current \jp for that $\vec{E}_{\mathrm{1}}\left(\vec{r}\right)}$.
+In the operator split, iterative approach of \cite{green2014}, the wave electric field is known from an initial guess at the plasma current, i.e., a cold-plasma full-wave solution. Provided this, or any time harmonic, complex valued wave electric field $\vec{E}_{\mathrm{1}}\left(\vec{r},t\right)=\vec{E}_{\mathrm{1}}\left(\vec{r}\right)\exp{-i\omega t}$, the \kj kernel evaluates the following expressions (the second operator $\mathfrak{L}_{\mathrm{2}}$ in the splitting of \cite{green2014}) to provide the kinetic plasma current \jp for that $\vec{E}_{\mathrm{1}}\left(\vec{r}\right)$.
 
 \begin{linenomath}
 \begin{equation}
@@ -282,7 +282,7 @@ By the method-of-characteristics, and with an initial condition as $f_{\mathrm{1
 \label{eq:f1}
 f_{\mathrm{1}}\left(\vec{r},\vec{v},t\right)=-\frac{q}{m}\int_{-\mathrm{\infty}}^{t}
 \Big(\vec{E}_{\mathrm{1}}\left(\vec{r}',t'\right)+\vec{v}\left(t'\right)\\ \times\vec{B}_1\left(\vec{r}',t'\right) 
-\hspace{0cm}\Big) \cdot\nabla_v f_{\mathrm{0}} \left(\vec{r}',\vec{v}',t'\right)dt'
+\hspace{0cm}\Big) \cdot\nabla_{v'} f_{\mathrm{0}} \left(\vec{r}',\vec{v}',t'\right)dt'
 \end{split}
 \end{equation}
 \end{linenomath}
@@ -300,6 +300,7 @@ where the characteristic curves $\left(\vec{r}',\vec{v}',t'\right)$ are given by
 \end{equation}
 \end{linenomath}
 
+%need to add final condition for r and v at t' = t
 Evaluating $\jp$ in this way as the integration along unperturbed, configuration-space particle trajectories yields several advantages beyond extending a cold-plasma solver to include kinetics. While the the driving motivation for this work is the need to solve higher fidelity problems (which include kinetic effects only in some part of the domain, but also exhibit variable spatial scales) than is presently possible with present spectral approaches (as represented by the first two of the following items) our approach will also address some other issues present in traditional methods. 
 %
 \begin{itemize}
@@ -338,9 +339,9 @@ The third component is evaluating the velocity space integral in Eq.~\ref{eq:j1}
 \label{section:program}
 %
 \subsection{Compiling}
-\label{section:running}
+\label{section:compiling}
 %
-\kj uses Make, with a machine dependent Makefile required. The name of this file must be set to \texttt{machine-makefiles/Makefile.\$(uname -n)}, with templates provided. C pre-processor (CPP) flags are used to control features and debugging output. 
+\kj uses Make, with a machine dependent Makefile required. The name of this file must be set to \texttt{machine-makefiles/Makefile.\$(uname -n)}, with templates provided. C pre-processor (CPP) flags are used to control features and debugging output with a list of descriptively named options selectable in \texttt{Makefile}. 
 
 \subsection{Running the Program}
 \label{section:running}
@@ -349,7 +350,7 @@ The \kj run directory structure, as laid out in the benchmark test cases, is as 
 
 \dirtree{%
 .1 run-directory.
-.2 kj.cfg..
+.2 kj.cfg.
 .2 input/.
 .3 input-data.nc.
 .2 output/.
@@ -359,7 +360,7 @@ The \kj run directory structure, as laid out in the benchmark test cases, is as 
 \label{section:input_file}
 The \kj input file kj.cfg is a libconfig (\url{http://www.hyperrealm.com/libconfig/}), human readable file. 
 %
-\lstinputlisting[language=C]{kj.cfg.example} 
+\lstinputlisting[language=C]{kj.cfg} 
 %
 The IDL routines also provide read and write capability for the \kj input files allowing scripting such as that used in the benchmarks where scans are made over input file variables.  
 %
@@ -368,14 +369,11 @@ The IDL routines also provide read and write capability for the \kj input files 
 As specified by the \lstinline{eField_fName} entry of the input file, a netcdf file containing the complex valued wave electric is required as input. 
  
 %
-\section{Verification and Benchmarks}
+\section{Benchmarks and Verification}
 \label{section:verification}
 The following verification examples are run using the \href{https://github.com/ORNL-Fusion/kineticj/blob/master/idl/kj_sigma_benchmarks.pro}{\texttt{idl/kj\_sigma\_benchmarks.pro}} script as documented in each benchmark's \texttt{README.md} file.
-
-\subsection{Verification 1: $\sigma_i\left(T\right), k_{y}=0$}
-\label{section:verification1}
 %
-The first benchmark case is a verification that \kj can reproduce the standard hot plasma conductivity tensor for ions in the ion-cyclotron range of frequencies. This requires setting up a uniform, periodic \kj input file. Here we choose frequency = 13 MHz, deuterium, density = 2e19 $m^{-3}$, $\vec{B}=B_z\hat{\vec{z}}$, $B_z=1.0$ T. To compute the full 3x3 conductivity tensor, we run \kj once for each wave electric field component being non-zero, such that with the components of the \kj returned $\vec{j}$ being 
+For all benchmarks we calculate the 3x3 hot plasma conductivity tensor elements, and compare with the standard analytic expressions in \cite[pg. 255 of ][]{brambilla}, or \cite[pg. 176 of][]{swanson}, as well as the cold plasma approximation. The analytic expressions are $\vec{k}$ dependent, which requires setting up a uniform, periodic \kj input file to mimic an infinite single $\vec{k}$ domain. The 1D (in x) domain size is chosen such that an integral number of $k_{\mathrm{x}}$ wavelengths fit, allowing trajectory calculations leaving one end of the domain to enter the other, with analytic $\exp{i\left(yk_{\mathrm{y}}+zk_{\mathrm{z}}\right)}$ variation in the other two directions. To compute the full 3x3 conductivity tensor, we run \kj once for each wave electric field component being non-zero, such that with the components of the \kj returned $\vec{j}$ being 
 %
 \begin{equation} 
 j_x = \sigma_{xx}E_x+\sigma_{xy}E_y+\sigma_{xz}Ez
@@ -387,53 +385,82 @@ j_y = \sigma_{yx}E_x+\sigma_{yy}E_y+\sigma_{yz}Ez
 j_z = \sigma_{zx}E_x+\sigma_{zy}E_y+\sigma_{zz}Ez
 \end{equation}
 %
-with three \kj runs ($E_y=E_z=0$, $E_x=E_z=0$, and $E_x=E_y=0$) we are able to calculate all nine elements of the tensor, e.g., for a $E_x\ne0,E_y=0,E_z=0$ run, $\sigma_{xx}=j_x/E_x$, $\sigma_{yx}=j_y/E_x$, and $\sigma_{zx}=j_z/E_x$. The standard expressions for the hot conductivity in \cite[pg. 255 of ][]{brambilla}, or \cite[pg. 176 of][]{swanson} assume $k_\perp=k_x$ and $k_\parallel=k_z$ with $k_y=0$. We first choose $k_x=10,k_y=0,k_z=100$ $m^{-1}$, as well as $T_\parallel=T_\perp$ and zero drift velocity (the $v_0$ term of \cite{swanson}).
-
-
-
+with three \kj runs ($E_y=E_z=0$, $E_x=E_z=0$, and $E_x=E_y=0$) we are able to calculate all nine elements of the tensor, e.g., for a $E_x\ne0,E_y=0,E_z=0$ run, $\sigma_{xx}=j_x/E_x$, $\sigma_{yx}=j_y/E_x$, and $\sigma_{zx}=j_z/E_x$. 
+%
+\subsection{Benchmark 1: $\sigma_i\left(T\right), k_{y}=0$, 13 MHz}
+\label{section:verification1}
+%
+The first benchmark case is a verification that \kj can reproduce the standard hot plasma conductivity tensor as a function of temperature for ions in the ion-cyclotron range of frequencies. Here we choose deuterium at a density of 2e19 $m^{-3}$, and $\vec{B}=B_z\hat{\vec{z}}$, $B_z=1.0$ T. We assume $k_\perp=k_x$ and $k_\parallel=k_z$ with $k_y=0$. We first choose $k_x=10,k_y=0,k_z=100$ $m^{-1}$, as well as $T_\parallel=T_\perp$ and zero drift velocity (the $v_0$ term of \cite{swanson}). The results of the benchmark are shown in Fig.~\ref{fig:b1}. The \kj results (thicker, transparent lines) clearly reproduce the standard result. The parameters required were \texttt{nThermal=3, nP\_Vx=11, nP\_vY=11, nP\_vZ=85, nRFCycles=10, nStepsPerCyclotronPeriod=500}.
+%
 \begin{figure*}
 \centering
-\includegraphics[]{figures/kj_sigma_vs_t}
-\caption{The nine components of the plasma conductivity for a range of temperatures. Black is real, red is imaginary. Cold-plasma values are shown as dotted lines for reference. The reference curves are calculated separately from both the expressions in \cite{brambilla} and \cite{swanson} to provide an additional verification.}
-\label{fig:sig_vs_t}
+\includegraphics[]{figures/benchmark1}
+\caption{\label{fig:b1}The nine components of the plasma conductivity for a range of temperatures. Black is real, red is imaginary. Cold-plasma values are shown as dotted lines for reference. The reference curves (thin, solid) are calculated separately from both the expressions in \cite{brambilla} and \cite{swanson} to provide an additional verification (and lay on top of each other such that you only see single real and imaginary reference curves). \kj calculated values are the transparent thicker curves.}
 \end{figure*}
-
-\subsection{Verification 2: $\sigma_i\left(T\right), k_{y}\ne 0$}
+%
+\subsection{Benchmark 2: $\sigma_i\left(T\right), k_{y}\ne 0$, 13 MHz}
 \label{section:verification2}
+%
+Next we run the same case (with the same parameters), but with $k_{\mathrm{y}}\ne 0$. Here we choose $k_{\mathrm{y}}=23$ m$^{\mathrm{-1}}$. Fig.~\ref{fig:b2} shows the results, again with \kj showing agreement to the analytic expressions of \cite{swanson}.
+%
+\begin{figure*}
+\centering
+\includegraphics[]{figures/benchmark2}
+\caption{Similar to Fig.~\ref{fig:b1}, but here the thin reference curves calculated from both the expressions in \cite{brambilla} (solid) and \cite{swanson} (dotted) do not overlap due to the expressions from \cite{brambilla} not including the $k_{\mathrm{y}}\ne 0$ explicitly, such that they merely reproduce the curves of Fig.~\ref{fig:b1}.}
+\label{fig:b2}
+\end{figure*}
+%
 
-How to run, plus link to the benchmark page on github.
-
-\subsection{Verification 3: $\sigma_i\left(B\right)$}
+\subsection{Benchmark 3: $\sigma_e\left(B\right)$, 32 GHz, Cyclotron Resonance}
 \label{section:verification3}
-
-\subsection{Verification 4: $\sigma_e\left(B\right), f=28 GHz$}
-\label{section:verification4}
-
-Electron case, at higher freq.
+%
+The third benchmark case is for electrons, and is a scan over magnetic field strength such that we cover the fundamental electron cyclotron resonance at 32 GHz. The $k$ component values are those used for benchmark 1, as is the density. The parameters required here were \texttt{nThermal=3, nP\_Vx=11, nP\_vY=11, nP\_vZ=15, nRFCycles=100, nStepsPerCyclotronPeriod=100}.
+%
+\begin{figure*}
+\centering
+\includegraphics[]{figures/benchmark3}
+\caption{Benchmark 3 results, being elements of the conductivity tensor for electrons as a function of magnetic field strength spanning the fundamental electron cyclotron resonance. As with Fig.~\ref{fig:b1}, black is real, red is imaginary. Cold-plasma values are shown as dotted lines for reference. The reference curves (thin, solid) are calculated separately from both the expressions in \cite{brambilla} and \cite{swanson} to provide an additional verification (and lay on top of each other such that you only see single real and imaginary reference curves). \kj calculated values are the transparent thicker curves spanning one a portion of the domain.}
+\label{fig:b3}
+\end{figure*}
+%
 
 \subsection{Choice of parameters}
 \label{section:parameters}
 %
-The numerical evaulation of Eqns.\ref{eq:j1} through \ref{eq:trajectories} require several discretization parameters to be chosen. These are 
+The evaluation of Eqns.\ref{eq:j1} through \ref{eq:trajectories} requires several discretization parameters to be chosen. The innermost of these are the time step (controlled by \texttt{nStepsPerCyclotronPeriod} - the number of time steps per cyclotron period at the particle starting location)  and the length of the RK4 unperturbed trajectory integration (controlled by \texttt{nRFCycles} - number of RF periods). Normally one would set the time step solely by the orbit integration accuracy requirements, i.e., some number of points per cyclotron period (hence the input parameter name). However, there is also the sampling of the wave electric field to consider. In the case where an unperturbed trajectory travels into a phase front incident from the opposing direction there may be a sufficiently large Doppler shift in the observed RF frequency by the trajectory such that the Doppler shifted RF frequency sets the minimum time step. This mainly applies to the parallel direction where trajectories at sufficiently large parallel velocities encounter a wave phase velocity of opposite parallel sign with small enough $k_{\parallel}$. A useful time step can be chosen as 
 %
-\begin{itemize}
-\item{Velocity space (Cartesian) grid resolution and range, via setting the number of velocity space grid points in each direction: nPx, nPy, and nPz in kj.cfg, as well as nThermal which specifies the range (in units of the thermal velocity) in both the positive and negative velocity directions of the velocity space integral in Eq.\ref{eq:j1}.}
-\end{itemize}
+\begin{linenomath}
+\begin{equation}
+\begin{split}
+\label{eq:min_dt}
+\Delta t=\mathrm{min}\Bigg(\frac{2\pi}{\omega_c\texttt{nPtsPerCyclotronPeriod}} ,\\ \left(1+\frac{\texttt{nThermal}v_{\mathrm{th}}}{\vec{v}_{\mathrm{p}}\cdot\hat{\vec{B}}}\right)f_{\mathrm{RF}}\times\texttt{nPtsPerCyclotronPeriod}\Bigg)
+\end{split}
+\end{equation}
+\end{linenomath}
+%
+where $\vec{v}_\mathrm{p}$ is the global minimum of the phase velocity of the wave electric field and $v_{\mathrm{th}}$ is the thermal velocity of the Maxwellian distributions.  
+
+In our benchmark cases, increasing the length of the time integral (controlled by \texttt{nRFCycles}) converges the \kj solution to the analytic result. However, it also sharpens the velocity space features of $f_\mathrm{1}$, which then couples \texttt{nRFCycles} to the velocity space resolution, i.e., as \texttt{nRFCycles} is increased, the sampling of velocity space also needs to increase to avoid under sampling the increasingly fine features and producing errors in the current. Here we uniformly sample velocity space in Cartesian coordinates with the range of velocity space being the same in all directions, set to $[-\texttt{nThermal}\times v_{\mathrm{th}},+\texttt{nThermal}\times v_{\mathrm{th}}]$ and grid resolutions in each direction controlled by \texttt{nP\_Vx}, \texttt{nP\_Vy}, and \texttt{nP\_Vz}. 
+
+Parameter selection, particularly the velocity space sampling, is an important aspect of running \kj, but it also has a sever impact on the run time required. The parameters are problem dependent, and at present convergence is reliant upon checking sensitivity to these choices and the operator to understand where resolution and sampling may be required, and what the symptoms are of choosing sub-optimal parameters. While adaptive sampling methods are an attractive choice, for the present work we have retained uniform step size and meshing to enable ease of programming for GPU architectures, thus enabling reasonable wall-clock times. An area of future work will be algorithm development to enable GPU implementation of  adaptive velocity space sampling, and / or trajectory (and subsequent $\vec{E}_{\mathrm{1}}$, Doppler shifted, sampling) time stepping.
 
 \section{Performance}
 \label{section:performance}
-The configuration space evaluation of Eqns.\ref{eq:1}-\ref{eq:2} is extremely expensive when compare to the evaluation of the analytic expressions of \cite{stix}. However, we have to keep in mind that the goal here is improved algorithmic scaling (work required as a function of degrees of freedom) to solve the problem. For the spectral equivalent, i.e., the AORSA code, the work scales as $N^3$, and memory as $N^2$. This means that for problems about about 512 x 512 ($N=...$), the work required exceeds that of modern peta-scale computers, as does the memory. So while the kernel presented here is much slower for smaller problems, at some point in $N$, we expect a crossover point such that the iterative operator-split algorithm will enable solving problems of higher $N$. 
-
-Still, that crossover point is lowered as we speed up \kj.
-
+%
+The configuration space evaluation of Eqns.\ref{eq:j1}-\ref{eq:trajectories} is extremely expensive when compared to evaluation of the analytic expressions of \cite{stix}. However, we have to keep in mind that the goal here is improved algorithmic scaling (work required as a function of degrees of freedom) to solve the larger linear, kinetic full-wave problem presented in \cite{green2014}. As such, we target GPU based architectures for acceleration of the \kj kernels. This is achieved by utilizing the CUDA\footnote{\url{https://developer.nvidia.com/cuda-toolkit}} THRUST library\footnote{\url{https://developer.nvidia.com/thrust}}. The use of the parallel execution policies within THRUST further provide us a serial CPU and OpenMP parallel execution options with no changes to the code by the choice of the compile time execution policy (\texttt{-DTHRUST\_DEVICE\_SYSTEM=THRUST\_DEVICE\_SYSTEM\_\$TARGET} where \texttt{\$TARGET} is one of \texttt{"CPP"} for serial, \texttt{"OMP"} for OpenMP parallel implementation, and \texttt{"CUDA"} for the GPU implementation). The parallelization worklist is over the 4D space consisting of a single spatial coordinate (only a single point in these benchmark scans) and 3 velocity coordinates. Figure~\ref{fig:scaling} shows the run time for a single \kj run for increasing velocity space resolution. We show curves for serial, OpenMP with ... threads, and a single GPU. The NVIDA Tesla (Kepler) K80 card we use has 4992 CUDA cores, which are only effectively utilized near the 1 million threads level. All calculations are single precision. The results of Fig.~\ref{fig:scaling} show a speedup of \~3x at 1 million work list elements over full OpenMP utilization of the ... available CPUs on the single node utilized here. This included \~10\% time for copying the data to and from the GPU.  
+%
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{figures/scaling}
+\caption{Performance for serial CPU, OpenMP, and GPU implementations using the THRUST library parallel execution policy such that no code changes are required for the different curves.}
+\label{fig:scaling}
+\end{figure}
+%
 \section{Discussion and Future Work}
 \label{section:discussion}
-While we have presented \kj in the context of an operator-split iterative approach, it is straighforward to conceive an approach where such a kernel is embedded within the matrix construction step of a finite element or similar method, as was done by \cite{svidzinski2016}. However, such an approach will still produce partially dense matricies, such that when moving to the 3D problems of interest, the block sparsity pattern may result in scaling difficulties such that utilizing the full power of leadership class computing platforms is difficult. 
-
-Future work will focus on the application of the \kj kernel within the mentioned iterative operator-spit approach to verify the complete solution method, and investigate its computational scaling properties with respect to other known methods of similar physics fidelity, i.e., AORSA and TORIC. Additionally we will move to higher spatial dimensionality, and investigate a gyro-averaged evaluation of \ref{eq:1} for faster calcualtion of the electron plasma current at ion-cyclotron time scales; Increase parallelization to multiple GPUs per node, across multiple nodes.
-
-And ...
-
+%
+We have presented a computational kernel for evaluating the linear kinetic plasma current for an arbitrary time-harmonic electric wave field. The intended use case is within a larger iterative operator-split approach to solving 2 and 3-D kinetic full-wave problems for RF heating and current drive in fusion plasmas as presented in \cite{green2014}. Three benchmark cases confirm \kj is able to reproduce the analytic solution for simple, single $\vec{k}$ uniform wave fields. While the uniform velocity space sampling and fixed time stepping for the trajectory integrations yield satisfactory results, we identify the robust and automatic / adaptive non-uniform velocity space sampling and time stepping as a future goal to reduce the computational overhead. 
+%
 \section{Acknowledgements}
 \label{section:acknowledgements}
 This research used resources of the Oak Ridge Leadership Computing Facility at the Oak Ridge National Laboratory, which is supported by the Office of Science of the U.S. Department of Energy under Contract No. DE-AC05-00OR22725.
