@@ -160,7 +160,7 @@
 %% \address{Address\fnref{label3}}
 %% \fntext[label3]{}
 
-\title{\kj: A computational kernel for calculating the linear, kinetic, configuration space plasma current for time harmonic wave electric fields.}
+\title{\kj: A computational kernel for solving the linearized Vlasov equation applied to calculations of the kinetic, configuration space plasma current for time harmonic wave electric fields.}
 
 %% use optional labels to link authors explicitly to addresses:
 %% \author[label1,label2]{<author name>}
@@ -179,12 +179,12 @@
 
 \begin{abstract}
 %% Text of abstract
-We present the \kj code, a computational kernel for evaluating the linear kinetic plasma response to an applied time harmonic wave electric field. This code addresses the need for a configuration space evaluation of the the plasma current to enable kinetic full-wave solvers for waves in hot plasmas to move beyond the limitations of the traditional Fourier spectral methods. We benchmark the kernel via comparison with the standard $\vec{k}$-space forms of the hot plasma conductivity tensor. 
+We present the \kj code, a computational kernel for evaluating the linearized Vlasov equation with application to calculating the kinetic plasma response (current) to an applied time harmonic wave electric field. This code addresses the need for a configuration space evaluation of the the plasma current to enable kinetic full-wave solvers for waves in hot plasmas to move beyond the limitations of the traditional Fourier spectral methods. We benchmark the kernel via comparison with the standard $\vec{k}$-space forms of the hot plasma conductivity tensor. 
 \end{abstract}
 
 \begin{keyword}
 %% keywords here, in the form: keyword \sep keyword
-Plasma; conductivity; linear; kinetic; hot; configuration space.
+Plasma \sep Vlasov \sep conductivity \sep linear \sep kinetic \sep hot \sep configuration space.
 
 \end{keyword}
 
@@ -205,7 +205,7 @@ Plasma; conductivity; linear; kinetic; hot; configuration space.
 \noindent
 {\em Program Title:} \kj                           \\
 {\em Licensing provisions: }MIT                             \\
-{\em Programming language: }C++ / IDL / CUDA                 \\
+{\em Programming language: }C++ / IDL / CUDA / Python        \\
 %{\em Supplementary material:}                                 \\
   % Fill in if necessary, otherwise leave out.
 %{\em Journal reference of previous version:}                  \\
@@ -281,7 +281,7 @@ By the method-of-characteristics, and with an initial condition as $f_{\mathrm{1
 \begin{split}
 \label{eq:f1}
 f_{\mathrm{1}}\left(\vec{r},\vec{v},t\right)=-\frac{q}{m}\int_{-\mathrm{\infty}}^{t}
-\Big(\vec{E}_{\mathrm{1}}\left(\vec{r}',t'\right)+\vec{v}\left(t'\right)\\ \times\vec{B}_1\left(\vec{r}',t'\right) 
+\Big(\vec{E}_{\mathrm{1}}\left(\vec{r}',t'\right)\\+\vec{v}' \times\vec{B}_1\left(\vec{r}',t'\right) 
 \hspace{0cm}\Big) \cdot\nabla_{v'} f_{\mathrm{0}} \left(\vec{r}',\vec{v}',t'\right)dt'
 \end{split}
 \end{equation}
@@ -309,6 +309,7 @@ Evaluating $\jp$ in this way as the integration along unperturbed, configuration
 \item{No requirement on field aligned grids.}
 \item{Includes violations of stationary phase approximation (i.e., upshift of the wave-number along particle trajectories \cite[]{berry2016})}
 \item{Produces sparse, banded tri-diagonal matrices via a diagonal dielectric tensor.}
+\item{Captures parallel $\nabla B_{\mathrm{0}}$, finite orbit, and other inhomogeneous effects.}
 \end{itemize}
 %
 The last of these items has implications for the scalability of the auxiliary full-wave solver.
@@ -318,7 +319,7 @@ The last of these items has implications for the scalability of the auxiliary fu
 %
 The \kj code is comprised of three components. The first is evaluation of the unperturbed trajectories of Eq.~\ref{eq:trajectories} via a fixed time step ($\Delta t$) 4th order Runge Kutta scheme from $t=0$ backwards to $t=-\texttt{nRFCycles}\times{2\pi}/\omega$ in steps of $-\Delta t$ where \texttt{nRFCycles} is a config file parameter specifying the number of RF cycle periods. We utilize a fixed time step such that a parallelization over velocity space yields the same amount of work per process, and is therefore more appropriate to the GPU implementation we employ. The background field interpolation is linear. Studies of results versus background field mesh resolution confirm this is sufficient for the cases presented here. However, in future a more accurate interpolation scheme may be required.
 
-The second component is calculation of $f_{\mathrm{1}}$ via evaluation of Eq.~\ref{eq:f1} by completing the time integration along the computed trajectories. The spatial and time coordinate of those trajectories are provided from the previous step allowing the time-harmonic fields to be evaluated, again with linear spatial interpolation, and the known $\exp{\left(-i\omega t'\right)}$ phase. Typically the $\vec{B}_{\mathrm{1}}$ of Eq.~\ref{eq:f1} is ignored due to its small contribution, but is easily added to capture TTMP effects. The velocity space gradient term $\nabla_v f_{\mathrm{0}}$ of Eq.~\ref{eq:f1} is known analytically for the Maxwellian problems presented here. However, numerical evaluation for an arbitrary $f_\mathrm{0}$ would also be straightforward. As discussed previously, the time integration is finite from $t'=-t_{\mathrm{inf}}=\texttt{nRFCycles}\times{2\pi}/\omega$ to $t'=0$ with the additional use of an arbitrary weighting function $\alpha\left(t'\right)$ that smoothly ramps from $\alpha\left(t'=-t_{\mathrm{inf}}\right)=0$ to $\alpha\left(t'\ge-t_{\mathrm{inf}}/2\right)=1$. 
+The second component is calculation of $f_{\mathrm{1}}$ via evaluation of Eq.~\ref{eq:f1} by completing the time integration along the computed trajectories. The spatial and time coordinate of those trajectories are provided from the previous step allowing the time-harmonic fields to be evaluated, again with linear spatial interpolation, and the known $\exp{\left(-i\omega t'\right)}$ phase. The velocity space gradient term $\nabla_v f_{\mathrm{0}}$ of Eq.~\ref{eq:f1} is known analytically for the Maxwellian problems presented here. Since this gradient is in the direction of $\vec{v}$, such that $\left(\vec{v}\times\vec{B}_{\mathrm{0}}\right)\cdot\nabla_v f_{\mathrm{0}}=0$, the $\vec{B}_{\mathrm{1}}$ term is ignored for the cases presented here. Extension to non-Maxwellian $f_{\mathrm{0}}$ would be straightforward via numeric evaluation of the velocity space gradient and inclusion of the $\vec{B}_{\mathrm{1}}$ term. As discussed previously, the time integration is finite from $t'=-t_{\mathrm{inf}}=\texttt{nRFCycles}\times{2\pi}/\omega$ to $t'=0$ with the additional use of an arbitrary weighting function $\alpha\left(t'\right)$ that smoothly ramps from $\alpha\left(t'=-t_{\mathrm{inf}}\right)=0$ to $\alpha\left(t'\ge-t_{\mathrm{inf}}/2\right)=1$. 
 %
 \begin{linenomath}
 \begin{equation}
@@ -376,13 +377,13 @@ The following verification examples are run using the \href{https://github.com/O
 For all benchmarks we calculate the 3x3 hot plasma conductivity tensor elements, and compare with the standard analytic expressions in \cite[pg. 255 of ][]{brambilla}, or \cite[pg. 176 of][]{swanson}, as well as the cold plasma approximation. The analytic expressions are $\vec{k}$ dependent, which requires setting up a uniform, periodic \kj input file to mimic an infinite single $\vec{k}$ domain. The 1D (in x) domain size is chosen such that an integral number of $k_{\mathrm{x}}$ wavelengths fit, allowing trajectory calculations leaving one end of the domain to enter the other, with analytic $\exp{i\left(yk_{\mathrm{y}}+zk_{\mathrm{z}}\right)}$ variation in the other two directions. To compute the full 3x3 conductivity tensor, we run \kj once for each wave electric field component being non-zero, such that with the components of the \kj returned $\vec{j}$ being 
 %
 \begin{equation} 
-j_x = \sigma_{xx}E_x+\sigma_{xy}E_y+\sigma_{xz}Ez
+j_x = \sigma_{xx}E_x+\sigma_{xy}E_y+\sigma_{xz}E_z
 \end{equation}
 \begin{equation} 
-j_y = \sigma_{yx}E_x+\sigma_{yy}E_y+\sigma_{yz}Ez
+j_y = \sigma_{yx}E_x+\sigma_{yy}E_y+\sigma_{yz}E_z
 \end{equation}
 \begin{equation} 
-j_z = \sigma_{zx}E_x+\sigma_{zy}E_y+\sigma_{zz}Ez
+j_z = \sigma_{zx}E_x+\sigma_{zy}E_y+\sigma_{zz}E_z
 \end{equation}
 %
 with three \kj runs ($E_y=E_z=0$, $E_x=E_z=0$, and $E_x=E_y=0$) we are able to calculate all nine elements of the tensor, e.g., for a $E_x\ne0,E_y=0,E_z=0$ run, $\sigma_{xx}=j_x/E_x$, $\sigma_{yx}=j_y/E_x$, and $\sigma_{zx}=j_z/E_x$. 
@@ -390,7 +391,8 @@ with three \kj runs ($E_y=E_z=0$, $E_x=E_z=0$, and $E_x=E_y=0$) we are able to c
 \subsection{Benchmark 1: $\sigma_i\left(T\right), k_{y}=0$, 13 MHz}
 \label{section:verification1}
 %
-The first benchmark case is a verification that \kj can reproduce the standard hot plasma conductivity tensor as a function of temperature for ions in the ion-cyclotron range of frequencies. Here we choose deuterium at a density of 2e19 $m^{-3}$, and $\vec{B}=B_z\hat{\vec{z}}$, $B_z=1.0$ T. We assume $k_\perp=k_x$ and $k_\parallel=k_z$ with $k_y=0$. We first choose $k_x=10,k_y=0,k_z=100$ $m^{-1}$, as well as $T_\parallel=T_\perp$ and zero drift velocity (the $v_0$ term of \cite{swanson}). The results of the benchmark are shown in Fig.~\ref{fig:b1}. The \kj results (thicker, transparent lines) clearly reproduce the standard result. The parameters required were \texttt{nThermal=3, nP\_Vx=11, nP\_vY=11, nP\_vZ=85, nRFCycles=10, nStepsPerCyclotronPeriod=100}.
+The first benchmark case is a verification that \kj can reproduce the standard hot plasma conductivity tensor as a function of temperature for ions in the ion-cyclotron range of frequencies. Here we choose deuterium at a density of 2e19 $m^{-3}$, and $\vec{B}=B_z\hat{\vec{z}}$, $B_z=1.0$ T. We assume $k_\perp=k_x$ and $k_\parallel=k_z$ with $k_y=0$. We first choose $k_x=10,k_y=0,k_z=100$ $m^{-1}$, as well as $T_\parallel=T_\perp$ and zero drift velocity (the $v_0$ term of \cite{swanson}). This scenario permits $
+\omega/\Omega_c=1.7$ such the resonant condition ($\omega-k_\parallel v_\parallel=\Omega_c$) for fundamental ion cyclotron damping being met via the Doppler broadening with an expected maximum slightly above $T_i$=1 keV, as seen in the perpendicular components of Fig.~\ref{fig:b1}. The parallel ion response also permits ion Landau damping for high $T_i$ (near 7 keV), seen in the parallel components. Figure~\ref{fig:b1} also shows the results of the benchmark with the \kj results (thicker, transparent lines) clearly reproducing the standard result. The parameters required were \texttt{nThermal=3}, \texttt{nP\_Vx=11}, \texttt{nP\_vY=11}, \texttt{nP\_vZ=85}, \texttt{nRFCycles=10}, \texttt{nStepsPerCyclotronPeriod=100}. We also note that the \kj calculation preserves the Onsager relations (e.g., $\sigma_{yx}=-\sigma_{xy}$) and that we do not rely on those relations to produce figures ~\ref{fig:b1}-\ref{fig:b3} with the panels being calculated independently. For example, $\sigma_{yx} = j_y / E_x$ from a \kj run with $E_y=E_z=0$, and $\sigma_{xy} = j_x / E_y$ from a run with $E_x=E_z=0$ (as opposed to doing a single run for $\sigma_{yz}$ and using $-\sigma_{yz}$ for the $\sigma_{xy}$ panel in the plot).
 %
 \begin{figure*}
 \centering
@@ -406,7 +408,7 @@ Next we run the same case (with the same parameters), but with $k_{\mathrm{y}}\n
 \begin{figure*}
 \centering
 \includegraphics[]{figures/benchmark2}
-\caption{Similar to Fig.~\ref{fig:b1}, but here the thin reference curves calculated from both the expressions in \cite{brambilla} (solid) and \cite{swanson} (dotted) do not overlap due to the expressions from \cite{brambilla} not including the $k_{\mathrm{y}}\ne 0$ explicitly, such that they merely reproduce the curves of Fig.~\ref{fig:b1}.}
+\caption{Similar to Fig.~\ref{fig:b1}, but here the thin reference curves are calculated from the rotated dielectric tensor expressions in \cite[Pg. 176 of][]{swanson} to account for  $k_{\mathrm{y}}\ne 0$.}
 \label{fig:b2}
 \end{figure*}
 %
@@ -463,8 +465,7 @@ We have presented a computational kernel for evaluating the linear kinetic plasm
 %
 \section{Acknowledgements}
 \label{section:acknowledgements}
-This research used resources of the Oak Ridge Leadership Computing Facility at the Oak Ridge National Laboratory, which is supported by the Office of Science of the U.S. Department of Energy under Contract No. DE-AC05-00OR22725.
-
+This research used resources of the Oak Ridge Leadership Computing Facility at the Oak Ridge National Laboratory and the National Energy Research Scientific Computing Center which are supported by the Office of Science of the U.S. Department of Energy under contract numbers DE-AC05-00OR22725 and DE-AC02-05CH11231 respectively.
 
 %% The Appendices part is started with the command \appendix;
 %% appendix sections are then done as normal sections
